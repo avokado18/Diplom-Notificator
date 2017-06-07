@@ -47,4 +47,14 @@ public class Subscription {
     public void setEmail(String email) {
         this.email = email;
     }
+
+    @Override
+    public String toString() {
+        return "Subscription{" +
+                "id=" + id +
+                ", user=" + user +
+                ", tag='" + tag + '\'' +
+                ", email='" + email + '\'' +
+                '}';
+    }
 }

@@ -1,31 +1,30 @@
-package com.diplom.notificator.imageWorkerImpl;
+package com.diplom.notificator.googleCV;
 
-import com.diplom.notificator.imageWorker.ImageWorker;
 import com.google.cloud.vision.spi.v1.ImageAnnotatorClient;
 import com.google.cloud.vision.v1.*;
-import com.google.protobuf.ByteString;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GoogleCVImageWorker implements ImageWorker {
-    public List<String> detectLabels(String fileName) throws IOException {
+public class GoogleCVTagsAnalizer {
+
+    private ImageAnnotatorClient client;
+
+    public GoogleCVTagsAnalizer(){
+        try {
+            this.client = ImageAnnotatorClient.create();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public List<String> detectLabels(Image img) {
+        if (img == null){
+            return new ArrayList<>();
+        }
         List<String> result = new ArrayList<>();
-        // Instantiates a client
-        ImageAnnotatorClient vision = ImageAnnotatorClient.create();
-
-        // Reads the image file into memory
-        Path path = Paths.get(fileName);
-        byte[] data = Files.readAllBytes(path);
-        ByteString imgBytes = ByteString.copyFrom(data);
-
-        // Builds the image annotation request
         List<AnnotateImageRequest> requests = new ArrayList<>();
-        Image img = Image.newBuilder().setContent(imgBytes).build();
         Feature feat = Feature.newBuilder().setType(Feature.Type.LABEL_DETECTION).build();
         AnnotateImageRequest request = AnnotateImageRequest.newBuilder()
                 .addFeatures(feat)
@@ -33,8 +32,7 @@ public class GoogleCVImageWorker implements ImageWorker {
                 .build();
         requests.add(request);
 
-        // Performs label detection on the image file
-        BatchAnnotateImagesResponse response = vision.batchAnnotateImages(requests);
+        BatchAnnotateImagesResponse response = client.batchAnnotateImages(requests);
         List<AnnotateImageResponse> responses = response.getResponsesList();
 
         for (AnnotateImageResponse res : responses) {
