@@ -2,6 +2,8 @@ package com.diplom.notificator;
 
 import com.diplom.notificator.googleCV.GoogleCVTagsAnalizer;
 import com.diplom.notificator.imageWorker.ImageWorkerImpl;
+import com.diplom.notificator.mailWorkerImpl.Email;
+import com.diplom.notificator.mailWorkerImpl.JavaEmailSender;
 import com.diplom.notificator.subscription.service.SubscriptionService;
 import com.google.cloud.vision.v1.Image;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +13,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 @Component
 @PropertySource("classpath:application.properties")
 public class Scheduler {
+
+    @Autowired
+    private JavaEmailSender javaEmailSender;
 
     @Autowired
     private Environment environment;
@@ -25,30 +29,7 @@ public class Scheduler {
 
     @Scheduled(fixedRate = 60000)
     public void reportCurrentTime() {
-        GoogleCVTagsAnalizer analizer = new GoogleCVTagsAnalizer();
-        List<Image> images = getImagesList();
-        Set<String> tagsFromAllPictures = new HashSet<>();
-        for (Image img : images) {
-            List<String> tagsFromCurrentPicture = analizer.detectLabels(img);
-            tagsFromAllPictures.addAll(tagsFromCurrentPicture);
-            try {
-                TimeUnit.SECONDS.sleep(30);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
-        }
-        System.out.println(tagsFromAllPictures);
-
-
-//        try {
-//            ImageWorker imageWorker = new GoogleCVTagsAnalizer();
-//            List<String> tags = imageWorker.detectLabels("src/main/resources/pictures/porshe.jpg");
-//            if (tags != null){
-//                System.out.println(tags);
-//            }
-//        } catch (Exception ex){
-//            ex.printStackTrace();
-//        }
+        task();
     }
 
     private List<Image> getImagesList(){
@@ -65,6 +46,31 @@ public class Scheduler {
             emailAndTagsFromSubscriptions.put(email, tagsForEmail);
         }
         return emailAndTagsFromSubscriptions;
+    }
+
+    private List<Email> getListEmailsToSend(){
+        GoogleCVTagsAnalizer analizer = new GoogleCVTagsAnalizer();
+        List<Image> images = getImagesList();
+        Map<String, Set<String>> emailTagsSubscr = getEmailTagsMap();
+        System.out.println(emailTagsSubscr);
+        Set<String> tagsFromAllPictures = new HashSet<>(analizer.detectLabels(images));
+        System.out.println(tagsFromAllPictures);
+        List<Email> emails = new ArrayList<>();
+        for (Map.Entry<String, Set<String>> entry : emailTagsSubscr.entrySet()) {
+            entry.getValue().retainAll(tagsFromAllPictures);
+            Email email = new Email();
+            email.setTo(entry.getKey());
+            email.setTasg(entry.getValue());
+            emails.add(email);
+        }
+        return emails;
+    }
+
+    private void task(){
+        List<Email> emails = getListEmailsToSend();
+        for (Email email : emails) {
+            javaEmailSender.send(email);
+        }
     }
 
 }

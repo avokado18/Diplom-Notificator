@@ -1,43 +1,36 @@
 package com.diplom.notificator.mailWorkerImpl;
 
-import com.diplom.notificator.mailWorker.MailSender;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Component;
 
-import javax.mail.*;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-import java.util.Properties;
+@EnableAutoConfiguration
+@Component
+public class JavaEmailSender {
 
-public class JavaEmailSender implements MailSender {
-    private final String username = "proskuryakova1996";
-    private final String password = "11002299ff,,dd";
+    private JavaMailSender javaMailSender;
 
-    public void send(String obj) {
-        Properties props = new Properties();
-        props.put("mail.smtp.host", "smtp.gmail.com");
-        props.put("mail.smtp.socketFactory.port", "465");
-        props.put("mail.smtp.socketFactory.class",
-                "javax.net.ssl.SSLSocketFactory");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.port", "465");
+    @Autowired
+    public JavaEmailSender(JavaMailSender javaMailSender){
+        this.javaMailSender =javaMailSender;
+    }
 
-        Session session = Session.getInstance(props,
-                new Authenticator() {
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication(username, password);
-                    }
-                });
-        try {
-            Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress("proskuryakova1996@gmail.com"));
-            message.setRecipients(Message.RecipientType.TO,
-                    InternetAddress.parse("proskuryakova1996@gmail.com"));
-            message.setSubject("Needed object was found");
-            message.setText("found " + obj);
+    private final String text = "По вашим запросам были найдены следующие объекты";
 
-            Transport.send(message);
+    private final String from = "SubscriptionAPI";
 
-        } catch (MessagingException e) {
-            throw new RuntimeException(e);
-        }
+    private final String subject = "Ваши подписки";
+
+    public void send(Email email) {
+        SimpleMailMessage mail = new SimpleMailMessage();
+        mail.setTo(email.getTo());
+        mail.setFrom(from);
+        mail.setSubject(subject);
+        mail.setText(text + email.getTasg().toString());
+        javaMailSender.send(mail);
     }
 }
