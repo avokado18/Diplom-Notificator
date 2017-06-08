@@ -2,11 +2,13 @@ package com.diplom.notificator.googleCV;
 
 import com.google.cloud.vision.spi.v1.ImageAnnotatorClient;
 import com.google.cloud.vision.v1.*;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class GoogleCVTagsAnalizer {
 
     private ImageAnnotatorClient client;

@@ -7,7 +7,7 @@ public class Email {
 
     private String to;
 
-    private Set<String> tasg;
+    private Set<String> tags;
 
     public String getTo() {
         return to;
@@ -17,19 +17,19 @@ public class Email {
         this.to = to;
     }
 
-    public Set<String> getTasg() {
-        return tasg;
+    public Set<String> getTags() {
+        return tags;
     }
 
-    public void setTasg(Set<String> tasg) {
-        this.tasg = tasg;
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
     }
 
     @Override
     public String toString() {
         return "Email{" +
                 "to='" + to + '\'' +
-                ", tasg=" + tasg +
+                ", tags=" + tags +
                 '}';
     }
 }

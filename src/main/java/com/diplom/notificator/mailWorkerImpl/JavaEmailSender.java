@@ -2,8 +2,6 @@ package com.diplom.notificator.mailWorkerImpl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.env.Environment;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
@@ -30,7 +28,7 @@ public class JavaEmailSender {
         mail.setTo(email.getTo());
         mail.setFrom(from);
         mail.setSubject(subject);
-        mail.setText(text + email.getTasg().toString());
+        mail.setText(text + email.getTags().toString());
         javaMailSender.send(mail);
     }
 }

@@ -2,7 +2,7 @@ package com.diplom.notificator.imageWorker;
 
 import com.google.cloud.vision.v1.Image;
 import com.google.protobuf.ByteString;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class ImageWorkerImpl implements ImageWorker{
     @Override
     public Image getImageFromPath(String fileName) {

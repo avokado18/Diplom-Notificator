@@ -1,6 +1,7 @@
 package com.diplom.notificator;
 
 import com.diplom.notificator.googleCV.GoogleCVTagsAnalizer;
+import com.diplom.notificator.imageWorker.ImageWorker;
 import com.diplom.notificator.imageWorker.ImageWorkerImpl;
 import com.diplom.notificator.mailWorkerImpl.Email;
 import com.diplom.notificator.mailWorkerImpl.JavaEmailSender;
@@ -27,15 +28,21 @@ public class Scheduler {
     @Autowired
     private SubscriptionService subscriptionService;
 
+    @Autowired
+    private GoogleCVTagsAnalizer analizer;
+
+    @Autowired
+    private ImageWorker imageWorker;
+
     @Scheduled(fixedRate = 60000)
     public void reportCurrentTime() {
-        task();
+//        task();
+        System.out.println(getListEmailsToSend());
     }
 
     private List<Image> getImagesList(){
         String path = environment.getProperty("images.path");
-        ImageWorkerImpl imgWorker = new ImageWorkerImpl();
-        return imgWorker.getImageList(path);
+        return imageWorker.getImageList(path);
     }
 
     private Map<String, Set<String>> getEmailTagsMap(){
@@ -49,7 +56,6 @@ public class Scheduler {
     }
 
     private List<Email> getListEmailsToSend(){
-        GoogleCVTagsAnalizer analizer = new GoogleCVTagsAnalizer();
         List<Image> images = getImagesList();
         Map<String, Set<String>> emailTagsSubscr = getEmailTagsMap();
         System.out.println(emailTagsSubscr);
@@ -60,7 +66,7 @@ public class Scheduler {
             entry.getValue().retainAll(tagsFromAllPictures);
             Email email = new Email();
             email.setTo(entry.getKey());
-            email.setTasg(entry.getValue());
+            email.setTags(entry.getValue());
             emails.add(email);
         }
         return emails;
