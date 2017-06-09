@@ -9,6 +9,12 @@ public class Email {
 
     private Set<String> tags;
 
+    final String text = "По вашим запросам были найдены следующие объекты";
+
+    final String from = "SubscriptionAPI";
+
+    final String subject = "Ваши подписки";
+
     public String getTo() {
         return to;
     }

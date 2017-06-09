@@ -1,7 +1,9 @@
 package com.diplom.notificator.imageWorker;
 
+import ch.qos.logback.core.util.FileUtil;
 import com.google.cloud.vision.v1.Image;
 import com.google.protobuf.ByteString;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -36,6 +38,7 @@ public class ImageWorkerImpl implements ImageWorker{
         if (files != null && files.length != 0){
             for (File file : files) {
                 Image image = getImageFromPath(file.toString());
+                file.delete();
                 if (image != null) {
                     images.add(image);
                 }

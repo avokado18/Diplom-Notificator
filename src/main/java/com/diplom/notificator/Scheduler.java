@@ -29,21 +29,18 @@ public class Scheduler {
     private SubscriptionService subscriptionService;
 
     @Autowired
-    private GoogleCVTagsAnalizer analizer;
-
-    @Autowired
     private ImageWorker imageWorker;
 
     @Scheduled(fixedRate = 60000)
-    public void reportCurrentTime() {
-//        task();
-        System.out.println(getListEmailsToSend());
+    public void task() {
+        sendEmails();
     }
 
     private List<Image> getImagesList(){
         String path = environment.getProperty("images.path");
         return imageWorker.getImageList(path);
     }
+
 
     private Map<String, Set<String>> getEmailTagsMap(){
         Set<String> emails = subscriptionService.findEmails();
@@ -56,6 +53,7 @@ public class Scheduler {
     }
 
     private List<Email> getListEmailsToSend(){
+        GoogleCVTagsAnalizer analizer = new GoogleCVTagsAnalizer();
         List<Image> images = getImagesList();
         Map<String, Set<String>> emailTagsSubscr = getEmailTagsMap();
         System.out.println(emailTagsSubscr);
@@ -66,13 +64,13 @@ public class Scheduler {
             entry.getValue().retainAll(tagsFromAllPictures);
             Email email = new Email();
             email.setTo(entry.getKey());
-            email.setTags(entry.getValue());
+            email.setTasg(entry.getValue());
             emails.add(email);
         }
         return emails;
     }
 
-    private void task(){
+    private void sendEmails(){
         List<Email> emails = getListEmailsToSend();
         for (Email email : emails) {
             javaEmailSender.send(email);
