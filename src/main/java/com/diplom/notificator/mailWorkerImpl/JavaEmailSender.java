@@ -1,12 +1,15 @@
 package com.diplom.notificator.mailWorkerImpl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.env.Environment;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import java.io.File;
 
 @Component
 public class JavaEmailSender {
@@ -24,7 +27,22 @@ public class JavaEmailSender {
         mail.setTo(email.getTo());
         mail.setFrom(email.from);
         mail.setSubject(email.subject);
-        mail.setText(email.text + email.getTasg().toString());
-        javaMailSender.send(mail);
+        mail.setText(email.text + email.getTags().toString());
+
+        MimeMessage message = javaMailSender.createMimeMessage();
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setFrom(mail.getFrom());
+            helper.setTo(mail.getTo());
+            helper.setSubject(mail.getSubject());
+            helper.setText(mail.getText());
+            for (File file : email.getAttachment()){
+                helper.addAttachment(file.getName(), file);
+            }
+        }
+        catch (MessagingException ex) {
+            ex.printStackTrace();
+        }
+        javaMailSender.send(message);
     }
 }
