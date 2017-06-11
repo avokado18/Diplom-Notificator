@@ -2,7 +2,6 @@ package com.diplom.notificator;
 
 import com.diplom.notificator.googleCV.GoogleCVTagsAnalizer;
 import com.diplom.notificator.imageWorker.ImageWorker;
-import com.diplom.notificator.imageWorker.ImageWorkerImpl;
 import com.diplom.notificator.mailWorkerImpl.Email;
 import com.diplom.notificator.mailWorkerImpl.JavaEmailSender;
 import com.diplom.notificator.subscription.service.SubscriptionService;
@@ -13,6 +12,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.util.*;
 
 @Component
@@ -33,7 +33,19 @@ public class Scheduler {
 
     @Scheduled(fixedRate = 60000)
     public void task() {
-        sendEmails();
+//        sendEmails();
+        Email email = new Email();
+        email.setTo("proskuryakova1996@gmail.com");
+        email.setTags(new HashSet<>());
+        email.setAttachment(getFileList());
+        javaEmailSender.send(email);
+    }
+
+
+    private File[] getFileList(){
+        String path = environment.getProperty("images.path");
+        File myFolder = new File(path);
+        return myFolder.listFiles();
     }
 
     private List<Image> getImagesList(){
@@ -64,7 +76,7 @@ public class Scheduler {
             entry.getValue().retainAll(tagsFromAllPictures);
             Email email = new Email();
             email.setTo(entry.getKey());
-            email.setTasg(entry.getValue());
+            email.setTags(entry.getValue());
             emails.add(email);
         }
         return emails;
