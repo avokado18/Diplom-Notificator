@@ -31,26 +31,23 @@ public class Scheduler {
     @Autowired
     private ImageWorker imageWorker;
 
+    @Autowired
+    private GoogleCVTagsAnalizer analizer;
+
     @Scheduled(fixedRate = 60000)
     public void task() {
-//        sendEmails();
-        Email email = new Email();
-        email.setTo("proskuryakova1996@gmail.com");
-        email.setTags(new HashSet<>());
-        email.setAttachment(getFileList());
-        javaEmailSender.send(email);
-    }
-
-
-    private File[] getFileList(){
-        String path = environment.getProperty("images.path");
-        File myFolder = new File(path);
-        return myFolder.listFiles();
+        sendEmails();
     }
 
     private List<Image> getImagesList(){
         String path = environment.getProperty("images.path");
         return imageWorker.getImageList(path);
+    }
+
+    private File[] getFilesList(){
+        String path = environment.getProperty("images.path");
+        File myFolder = new File(path);
+        return myFolder.listFiles();
     }
 
 
@@ -65,19 +62,35 @@ public class Scheduler {
     }
 
     private List<Email> getListEmailsToSend(){
-        GoogleCVTagsAnalizer analizer = new GoogleCVTagsAnalizer();
-        List<Image> images = getImagesList();
-        Map<String, Set<String>> emailTagsSubscr = getEmailTagsMap();
-        System.out.println(emailTagsSubscr);
-        Set<String> tagsFromAllPictures = new HashSet<>(analizer.detectLabels(images));
-        System.out.println(tagsFromAllPictures);
+        File[] imgs = getFilesList();
+        Map<Integer, Set<String>> pictureTagsMap = analizer.detectLabels(getImagesList());
+        Map<String, Set<String>> emailAndTagsFromSubscriptions = getEmailTagsMap();
+        System.out.println(emailAndTagsFromSubscriptions);
+        Set<String> allTagsFromPictures = getAllTagsFromPictures(pictureTagsMap);
+        System.out.println(allTagsFromPictures);
         List<Email> emails = new ArrayList<>();
-        for (Map.Entry<String, Set<String>> entry : emailTagsSubscr.entrySet()) {
-            entry.getValue().retainAll(tagsFromAllPictures);
-            Email email = new Email();
-            email.setTo(entry.getKey());
-            email.setTags(entry.getValue());
-            emails.add(email);
+        for (Map.Entry<String, Set<String>> entry : emailAndTagsFromSubscriptions.entrySet()) {
+            entry.getValue().retainAll(allTagsFromPictures);
+            if (!entry.getValue().isEmpty()){
+                List<File> filesToSend = new ArrayList<>();
+                for(Map.Entry<Integer, Set<String>> pictureTag : pictureTagsMap.entrySet()){
+                    boolean contain = false;
+                    for (String tag : entry.getValue()){
+                        if (pictureTag.getValue().contains(tag)){
+                            contain = true;
+                        }
+                    }
+                    if (contain){
+                        filesToSend.add(imgs[pictureTag.getKey()]);
+                    }
+                }
+                Email email = new Email();
+                email.setTo(entry.getKey());
+                email.setTags(entry.getValue());
+                email.setAttachment(filesToSend);
+                emails.add(email);
+                System.out.println(email);
+            }
         }
         return emails;
     }
@@ -87,6 +100,14 @@ public class Scheduler {
         for (Email email : emails) {
             javaEmailSender.send(email);
         }
+    }
+
+    private Set<String> getAllTagsFromPictures(Map<Integer, Set<String>> tags){
+        Set<String> result = new HashSet<>();
+        for (int i = 0; i < tags.size(); i++){
+            result.addAll(tags.get(i));
+        }
+        return result;
     }
 
 }

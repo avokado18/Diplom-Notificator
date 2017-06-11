@@ -38,7 +38,7 @@ public class ImageWorkerImpl implements ImageWorker{
         if (files != null && files.length != 0){
             for (File file : files) {
                 Image image = getImageFromPath(file.toString());
-                file.delete();
+//                file.delete();
                 if (image != null) {
                     images.add(image);
                 }

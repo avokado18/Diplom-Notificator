@@ -5,8 +5,7 @@ import com.google.cloud.vision.v1.*;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Component
 public class GoogleCVTagsAnalizer {
@@ -21,11 +20,11 @@ public class GoogleCVTagsAnalizer {
         }
     }
 
-    public List<String> detectLabels(List<Image> imgs) {
+    public Map<Integer, Set<String>> detectLabels(List<Image> imgs) {
         if (imgs == null || imgs.isEmpty()){
-            return new ArrayList<>();
+            return new HashMap<>();
         }
-        List<String> result = new ArrayList<>();
+        Map<Integer, Set<String>> imageTags = new HashMap<>();
         List<AnnotateImageRequest> requests = new ArrayList<>();
         Feature feat = Feature.newBuilder().setType(Feature.Type.LABEL_DETECTION).build();
         for (Image img : imgs){
@@ -39,16 +38,18 @@ public class GoogleCVTagsAnalizer {
         BatchAnnotateImagesResponse response = client.batchAnnotateImages(requests);
         List<AnnotateImageResponse> responses = response.getResponsesList();
 
-        for (AnnotateImageResponse res : responses) {
-            if (res.hasError()) {
-                System.out.printf("Error: %s\n", res.getError().getMessage());
+        for (int i = 0; i < responses.size(); i++) {
+            Set<String> tags = new HashSet<>();
+            if (responses.get(i).hasError()) {
+                System.out.printf("Error: %s\n", responses.get(i).getError().getMessage());
                 return null;
             }
 
-            for (EntityAnnotation annotation : res.getLabelAnnotationsList()) {
-                result.add(annotation.getDescription());
+            for (EntityAnnotation annotation : responses.get(i).getLabelAnnotationsList()) {
+                tags.add(annotation.getDescription());
             }
+            imageTags.put(i, tags);
         }
-        return result;
+        return imageTags;
     }
 }

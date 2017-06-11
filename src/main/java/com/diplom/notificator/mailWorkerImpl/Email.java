@@ -13,7 +13,7 @@ public class Email {
 
     private Set<String> tags;
 
-    private File[] attachment;
+    private List<File> attachment;
 
     final String text = "По вашим запросам были найдены следующие объекты";
 
@@ -38,11 +38,11 @@ public class Email {
         this.tags = tags;
     }
 
-    public File[] getAttachment() {
+    public List<File> getAttachment() {
         return attachment;
     }
 
-    public void setAttachment(File[] attachment) {
+    public void setAttachment(List<File> attachment) {
         this.attachment = attachment;
     }
 
@@ -51,6 +51,7 @@ public class Email {
         return "Email{" +
                 "to='" + to + '\'' +
                 ", tags=" + tags +
+                ", attachment=" + attachment +
                 '}';
     }
 }
